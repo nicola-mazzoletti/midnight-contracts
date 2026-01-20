@@ -112,11 +112,11 @@ module BucketDEFI {
   *
   * @notice: none
   *
-  * @type: {Bytes<32>} Challenge - Random number generated offchain specifically for a single user.   
-  * @type: {Bytes<32>} ZK Bucket Identity - Hash of owner public key + witness nonce + counter. 
-  * @type: {Map<Challenge, Set<ZK-Bucket-Identity>>} 
+  * @param {Bytes<32>} ownerCommitment - The representation of a bucket
+  * @param {Bytes<32>} challenge - The challenge to be included
+  * @type: {Map<ownerCommitment, Challenge>} 
   */
-  export ledger _authVerifications: Map<Bytes<32>, Set<Bytes<32>>>;
+  export ledger _authVerifications: Map<Bytes<32>, Bytes<32>>;
 
   /**
    * @description: Track of certificates locked to the bucket
@@ -447,10 +447,9 @@ module BucketDEFI {
     const isOwner = _isBucketOwner(ownerCommitment);
     assert(isOwner, "Not the owner");
     
-    // include the challenge
-    _authVerifications.insert(disclose(ownerCommitment), default<Set<Bytes<32>>>);
-    _authVerifications.lookup(disclose(ownerCommitment)).insert(disclose(challenge));
-        
+    // include the challenge   
+    _authVerifications.insert(disclose(ownerCommitment), disclose(challenge));
+               
     return [];
   }
 
