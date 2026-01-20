@@ -155,24 +155,7 @@ function createSimulator() {
     .as("adminMaster")
     .grantRole(verifierAdmin_ROLE, Account_verifierAdmin, adminMaster); 
 
-  const state = simulator.getLedger();
-
-  console.log({admin: state.AccessControl_adminRoles.lookup(minter_ROLE)});
-  console.log({admin: state.AccessControl_adminRoles.lookup(matcher_ROLE)});
-  console.log({admin: state.AccessControl_adminRoles.lookup(settler_ROLE)});
-  console.log({admin: state.AccessControl_adminRoles.lookup(verifier_ROLE)});
-
-  console.log({admin: state.AccessControl_adminRoles.member(minter_ROLE)});
-  console.log({admin: state.AccessControl_adminRoles.member(matcher_ROLE)});
-  console.log({admin: state.AccessControl_adminRoles.member(settler_ROLE)});
-  console.log({admin: state.AccessControl_adminRoles.member(verifier_ROLE)});
-
-  console.log({operator1: state.AccessControl__operatorRoles.lookup(minterAdmin_ROLE).lookup(Account_minterAdmin)});
-  console.log({operator2: state.AccessControl__operatorRoles.lookup(matcherAdmin_ROLE).lookup(Account_matcherAdmin)});
-  console.log({operator3: state.AccessControl__operatorRoles.lookup(settlerAdmin_ROLE).lookup(Account_settlerAdmin)});
-  console.log({operator4: state.AccessControl__operatorRoles.lookup(verifierAdmin_ROLE).lookup(Account_verifierAdmin)});
-
-  // Grant minter role using minterAdmin (who has minterAdmin_ROLE)
+  // Grant Admin Roles
   simulator
     .as("minterAdmin")
     .grantRole(minter_ROLE, Account_minter, minterAdmin);
@@ -422,11 +405,7 @@ describe("Smart contract Testing", () => {
       );
       expect(simulator.as("minter").tokenCertificate(TOKENID_1)).toStrictEqual(
         Certificate_1
-      );
-      // expect(simulator.as("minter").tokenPrice(TOKENID_1)).toBe(11n);
-      // expect(() => {
-      //   expect(simulator.as("minter").tokenPrice(TOKENID_1)).toBe(10n);
-      // }).toThrow();
+      );   
 
       // Set a price
       simulator.as("minter").setTokenPrice(TOKENID_1, 20n, minter);
