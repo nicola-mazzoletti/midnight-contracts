@@ -118,3 +118,4 @@ pure circuit helper(x: Field): Field {
 ## License
 
 MIT - [Webisoft Development Labs](https://webisoft.com)
+claude mcp add midnight -- npx -y midnight-mcp@latest 
