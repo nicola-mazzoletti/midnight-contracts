@@ -14,13 +14,14 @@ This project provides a comprehensive testing framework for the Midnight blockch
 - **Contract Folder** - Compact, witness and testing.
 - **CLI Folder** - CLI for interacting with the contract and providers.
 
+### Bulleting Board Contract
+- **Bboard Folder** - Compact, witness and testing.
+
 ### ZSwap Minting Contract
 - **Contract Folder** - Compact, witness and testing.
-- **CLI Folder** - Pending.
 
 ### Bucket-DeFi Contracts  
 - **Contract Folder** - Compact, witness and testing
-- **CLI Folder** - Pending.
 
 ## Installation
 
@@ -37,5 +38,6 @@ npm run build
 ## Contract List
 
 - [x] Counter Contract
+- [x] Bulleting Board Contract
 - [x] ZSwap Minting Contract
 - [x] Bucket-DeFi Contract
