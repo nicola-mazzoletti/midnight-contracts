@@ -1,6 +1,6 @@
 # Midnight Contracts
 
-This project provides a comprehensive testing framework for the Midnight blockchain platform. We include contracts, witnesses, Midnight SDKs, testing suites, and providers to thoroughly test Midnight's features, evaluate performance, and conduct real-world scenario testing.
+This project provides a comprehensive testing framework for the Midnight blockchain platform. We include contracts, witnesses, Midnight SDKs, testing suites, and providers to thoroughly test Midnight's features, evaluate performance, and conduct real-world scenario testing
 
 ## 📦 Prerequisites
 
