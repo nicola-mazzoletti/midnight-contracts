@@ -1,12 +1,10 @@
-import type * as Compact from "../../managed/nft-bucket-identity/contract/index.cjs";
-import { encodeTokenType } from "@midnight-ntwrk/compact-runtime";
-import {nativeToken} from '@midnight-ntwrk/zswap';
-
+import type * as Compact from "../../managed/bucket-defi/contract/index.js";
 import {
-  convert_bigint_to_Uint8Array,
-  encodeCoinPublicKey,
-  encodeContractAddress
+  encodeRawTokenType,
+  encodeContractAddress,
+  encodeCoinPublicKey
 } from "@midnight-ntwrk/compact-runtime";
+import * as ledger from '@midnight-ntwrk/ledger-v6';
 
 const PREFIX_ADDRESS = "0200";
 
@@ -33,7 +31,16 @@ export const toHexPadded = (str: string, len = 64) =>
   Buffer.from(str, "ascii").toString("hex").padStart(len, "0");
 
 /**
+ * @description Converts a Uint8Array to a hex string
+ * @param bytes Uint8Array to convert
+ * @returns Hex string representation
+ */
+export const bytesToHex = (bytes: Uint8Array): string =>
+  Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+/**
  * @description Generates ZswapCoinPublicKey from `str` for testing purposes.
+ *              Uses encodeCoinPublicKey from the library.
  * @param str String to hexify and encode.
  * @returns Encoded `ZswapCoinPublicKey`.
  */
@@ -42,25 +49,35 @@ export const encodeToPK = (str: string): Compact.ZswapCoinPublicKey => ({
 });
 
 /**
+ * @description Creates a caller hex string that matches what encodeToPK produces.
+ *              Use this to create callers that are compatible with accounts created by createEitherTestUser.
+ * @param str String identifier for the caller.
+ * @returns Hex string for use with emptyZswapLocalState.
+ */
+export const createCaller = (str: string): string =>
+  bytesToHex(encodeCoinPublicKey(toHexPadded(str)));
+
+/**
  * @description Generates ContractAddress from `str` for testing purposes.
  *              Prepends 32-byte hex with PREFIX_ADDRESS before encoding.
  * @param str String to hexify and encode.
  * @returns Encoded `ZswapCoinPublicKey`.
  */
 export const encodeToAddress = (str: string): Compact.ContractAddress => ({
-  bytes: encodeContractAddress(PREFIX_ADDRESS + toHexPadded(str))
+  bytes: encodeContractAddress(PREFIX_ADDRESS + toHexPadded(str, 60))
 });
 
 /**
  * @description Generates an Either object for ZswapCoinPublicKey for testing.
  *              For use when an Either argument is expected.
+ *              Uses all-zeros for right to match what the circuit's left() wrapper produces.
  * @param str String to hexify and encode.
  * @returns Defined Either object for ZswapCoinPublicKey.
  */
 export const createEitherTestUser = (str: string) => ({
   is_left: true,
   left: encodeToPK(str),
-  right: encodeToAddress("")
+  right: { bytes: new Uint8Array(32) }  // Match circuit's _left_0 which uses all zeros
 });
 
 /**
@@ -81,18 +98,18 @@ export const createEitherTestContractAddress = (str: string) => ({
  * @returns Empty Uint8Array of a specific length.
  */
 export const zeroUint8Array = (length = 32) =>
-  convert_bigint_to_Uint8Array(length, 0n);
+  new Uint8Array(length);
 
 
 /**
- * @description Generates a CoinInfo object for testing purposes.
+ * @description Generates a ShieldedCoinInfo object for testing purposes.
  * @param value Value of the coin.
- * @returns CoinInfo object.
+ * @returns ShieldedCoinInfo object.
  */
-export const coin = (value: number): Compact.CoinInfo => {
+export const coin = (value: number): Compact.ShieldedCoinInfo => {
   return {
     nonce: randomBytes(32),
-    color: encodeTokenType(nativeToken()),
+    color: encodeRawTokenType(ledger.shieldedToken().raw),
     value: BigInt(value),
   };
 }

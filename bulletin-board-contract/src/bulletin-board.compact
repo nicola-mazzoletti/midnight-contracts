@@ -1,0 +1,50 @@
+pragma language_version >= 0.19;
+
+import CompactStandardLibrary;
+
+// Public ledger state - visible to everyone
+export ledger note: Opaque<"string">;        // The note content (public when posted)
+export ledger hasNote: Boolean;               // Whether the board currently has a note
+export ledger authorCommitment: Bytes<32>;    // Commitment to the author's identity (hides who posted)
+
+// Witness declarations - private data provided by the user
+witness local_secret_key(): Bytes<32>;
+
+// Helper circuit to compute public key from secret key (for identity commitment)
+pure circuit compute_author_commitment(sk: Bytes<32>): Bytes<32> {
+  // Hash the secret key to create a commitment that hides the author's identity
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "bboard:author:"), sk]);
+}
+
+// Post a note to the bulletin board
+// - Anyone can post if the board is empty
+// - The author's identity is hidden (only a commitment is stored)
+export circuit postNote(content: Opaque<"string">): [] {
+  // Ensure the board is empty
+  assert(disclose(!hasNote), "Board is full - someone already posted a note");
+
+  // Get the author's secret key and compute their commitment
+  const sk = local_secret_key();
+  const commitment = compute_author_commitment(sk);
+
+  // Post the note and store the author commitment
+  note = disclose(content);
+  authorCommitment = disclose(commitment);
+  hasNote = true;
+}
+
+// Take down the note from the bulletin board
+// - Only the original author can take down their note
+// - The author proves they know the secret key that matches the stored commitment
+export circuit takeDown(): [] {
+  // Ensure there is a note to take down
+  assert(disclose(hasNote), "No note to take down");
+
+  // Verify the caller is the original author
+  const sk = local_secret_key();
+  const callerCommitment = compute_author_commitment(sk);
+  assert(disclose(callerCommitment == authorCommitment), "Only the original author can take down the note");
+
+  // Clear the board
+  hasNote = false;
+}
