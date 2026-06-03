@@ -1,121 +1,96 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude and other AI coding agents when working with code in this repository.
+Guidance for AI coding agents working in this repository. Read this before
+making changes. Prefer verifying claims against the code over trusting prose,
+including this file.
 
-## Repository Overview
+## What this repo is
 
-**Night Skills** is a collection of skills for AI agents to build, deploy, and interact with Midnight Network dApps. Skills are packaged instructions and scripts that extend agent capabilities for privacy-preserving blockchain development.
+`@eddalabs/example-contracts` is a lightweight, contract-focused catalog of
+[Compact](https://docs.midnight.network) smart contracts for
+[Midnight](https://midnight.network). It is deliberately **not** a full dApp:
+there is no UI and no CLI. The focus is the contracts and their tests, so a
+reader can clone, read, run the tests, and start modifying without standing up
+any infrastructure.
 
-**Maintained by:** [Webisoft Development Labs](https://webisoft.com) - [Utkarsh Varma (@UvRoxx)](https://github.com/UvRoxx)
+It is a Turbo monorepo of independent contract workspaces. Current contracts:
 
-## About Midnight Network
+- `counter-contract`: minimal public state, no privacy (start here).
+- `bulletin-board-contract`: witnesses and selective disclosure.
+- `unshielded-token-contract`: unshielded token circuits (mint/send/receive + native NIGHT), ported verbatim from the official docs token-transfers example.
+- `shielded-token-contract`: shielded Zswap coins (mint/send/receive), ported verbatim from the same official token-transfers example.
 
-Midnight is a privacy-first blockchain platform using zero-knowledge proofs:
+License: Apache-2.0.
 
-- **Private Smart Contract State** - Encrypted ledger data
-- **Selective Disclosure** - Prove claims without revealing data
-- **Shielded Tokens** - Private token transfers
-- **Unshielded Tokens** - Public when needed
+## The five-part workspace pattern
 
-## Available Skills
+Every contract workspace follows the same shape. New contracts should match it:
 
-### midnight-compact-guide
-Complete Compact language reference (v0.19+) for writing privacy-preserving smart contracts.
-
-**Triggers:** "write contract", "Compact syntax", "ZK proof", "ledger state", "circuit function"
-
-**Rules:**
-- `privacy-selective-disclosure.md` - ZK disclosure patterns
-- `tokens-shielded-unshielded.md` - Token vault patterns
-- `common-errors.md` - Error messages and solutions
-- `openzeppelin-patterns.md` - Security patterns (Ownable, Pausable, AccessControl)
-
-**Critical Syntax Notes:**
-- Pragma: `pragma language_version >= 0.19;`
-- Ledger: Individual declarations, NOT block syntax
-- Return type: `[]` (empty tuple), NOT `Void`
-- Witness: Declaration only, NO body in Compact
-- Pure helpers: `pure circuit`, NOT `pure function`
-- Enum access: Dot notation (`Choice.rock`), NOT double colon
-
-### midnight-sdk-guide
-TypeScript SDK integration guide for Midnight dApps.
-
-**Triggers:** "SDK", "TypeScript", "wallet integration", "connect dApp", "call contract"
-
-**Rules:**
-- `wallet-integration.md` - Complete wallet integration patterns
-
-### midnight-infra-setup
-Set up and run Midnight infrastructure locally using official dev tools.
-
-**Triggers:** "setup infrastructure", "start node", "run indexer", "proof server"
-
-**Based on:**
-- [midnight-infra-dev-tools](https://github.com/midnightntwrk/midnight-infra-dev-tools)
-- [midnight-node](https://github.com/midnightntwrk/midnight-node)
-- [midnight-indexer](https://github.com/midnightntwrk/midnight-indexer)
-- [midnight-ledger](https://github.com/midnightntwrk/midnight-ledger)
-
-### midnight-deploy
-Deploy Midnight contracts to local or preview network.
-
-**Triggers:** "deploy contract", "deploy to testnet", "deploy to preview"
-
-### midnight-test-runner
-Run and debug Midnight contract tests.
-
-**Triggers:** "run tests", "test contract", "debug test failure"
-
-## Common Compact Syntax (v0.19+)
-
-### Quick Reference
-
-```compact
-pragma language_version >= 0.19;
-
-import CompactStandardLibrary;
-
-// Ledger - individual declarations
-export ledger counter: Counter;
-export ledger owner: Bytes<32>;
-
-// Witness - declaration only
-witness local_secret_key(): Bytes<32>;
-
-// Circuit - returns []
-export circuit increment(): [] {
-  counter.increment(1);
-}
-
-// Pure circuit (NOT function)
-pure circuit helper(x: Field): Field {
-  return x + 1;
-}
+```
+src/<name>.compact          → the contract source (the only thing you hand-write here)
+  ↓ compact compile
+src/managed/<name>/         → GENERATED: TS API, ZK keys, circuit IR (do not edit, do not commit)
+src/witnesses.ts            → private-state type + witness implementations
+src/test/simulators/        → in-memory CircuitContext harness (phase-1, no infra)
+src/test/<name>.test.ts     → Vitest suite
+docs.md                     → beginner walkthrough (see template note below)
 ```
 
-### Common Mistakes
+## Build and test
 
-| Wrong | Correct |
-|-------|---------|
-| `ledger { }` block | `export ledger field: Type;` |
-| `Void` return | `[]` return |
-| `pure function` | `pure circuit` |
-| `Choice::rock` | `Choice.rock` |
-| `counter.value()` | `counter.read()` |
+Per workspace:
+
+```bash
+npm run compact      # compile <name>.compact into src/managed/<name>/
+npm run compact-fast # same, but --skip-zk (faster; use while iterating on logic)
+npm test             # vitest run, entirely in memory
+```
+
+From the repo root, `npm run build` / `npm run compact` / `npm run lint` fan out
+across workspaces via Turbo. Tests need **no** node, wallet, or proof server;
+the simulators run circuits in-memory using `@midnight-ntwrk/compact-runtime`.
+
+## Conventions that bite
+
+- **Compiler toolchain is `+0.31.0`.** That is the version pinned in each
+  workspace's `compact` script. Do not assume older versions; verify with
+  `compact` against the available list. (Language pragmas in-tree are currently
+  `>= 0.19` and `>= 0.23`; the `0.31.0` compiler accepts both.)
+- **Never commit `src/managed/`.** It is generated build output, gitignored via
+  `**/managed/`. Readers regenerate it with `npm run compact`. Committing it
+  invites staleness and toolchain mismatch.
+- **On-chain integers are `bigint`.** Assertions compare against `0n`, `1n`,
+  etc. Mixing `0` and `0n` is a common mistake.
+- **`disclose` is required on ledger writes of private values, not on asserts.**
+  Writing a witness-derived value (or a circuit parameter, which is private by
+  default) into the ledger needs `disclose(...)`; the compiler error is "a
+  ledger operation might disclose the witness value." Asserting on a private
+  value, even a witness-derived comparison, does not require it. Verify before
+  claiming otherwise.
+- **Keep workspaces clean.** Do not leave session transcripts, scratch notes, or
+  agent work-logs in a workspace. Intentional documentation goes in `docs.md`.
+
+## Writing a contract's docs.md
+
+`counter-contract/docs.md` is the canonical template. Its 10-section skeleton
+(documented in an HTML comment at the top of that file) is what every contract
+guide should follow: what it does, run it, the source line by line, public vs.
+private state, what the compiler generates, witnesses, the simulator, the tests,
+try-it-yourself, credits. Tone is beginner-first; lead dense contracts with a
+concrete analogy. Be honest about what a contract does not do.
+
+## Honesty
+
+Ground statements in the actual code and official docs. Credit the official
+`midnightntwrk/example-counter` for the simulator pattern (its copyright notice
+is preserved in each `vitest.config.ts`). Do not write contract code (especially
+token code) from memory; pull from an authoritative current source.
 
 ## Resources
 
 | Resource | URL |
 |----------|-----|
-| Midnight Docs | https://docs.midnight.network |
-| Compact Guide | https://docs.midnight.network/develop/reference/compact/lang-ref |
-| Lace Wallet | https://www.lace.io |
-| Faucet | https://faucet.preview.midnight.network |
-| midnight-mcp | https://github.com/Olanetsoft/midnight-mcp |
-| OpenZeppelin Compact | https://github.com/OpenZeppelin/compact-contracts |
-
-## License
-
-MIT - [Webisoft Development Labs](https://webisoft.com)
-claude mcp add midnight -- npx -y midnight-mcp@latest 
+| Midnight docs | https://docs.midnight.network |
+| Compact language reference | https://docs.midnight.network/develop/reference/compact/lang-ref |
+| example-counter (simulator pattern origin) | https://github.com/midnightntwrk/example-counter |
+| OpenZeppelin Compact contracts | https://github.com/OpenZeppelin/compact-contracts |

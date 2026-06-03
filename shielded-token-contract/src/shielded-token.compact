@@ -1,0 +1,40 @@
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// Shielded token circuits, ported VERBATIM from Midnight's official
+// token-transfers contract:
+//   repo: midnightntwrk/midnight-wallet-dapp
+//         src/contract/contracts/token-transfers.compact
+//   docs: https://docs.midnight.network/examples/contracts/token-transfers
+//
+// The upstream file has nine circuits (five unshielded + these four shielded)
+// and no pragma; it compiles as-is. Only the SHIELDED circuits are reproduced
+// here (the unshielded equivalents live in ../unshielded-token-contract). The four
+// circuit bodies below are unchanged. Two additions, neither of which is
+// contract logic:
+//   - the `pragma` above: pins the language version. The upstream omits it and
+//     compiles either way; kept here for consistency with the rest of the repo.
+//   - the `export { ... }` below: re-exports the stdlib coin types by name so
+//     the TypeScript tests can import them. Without it the contract still
+//     compiles, but the type names are not exported.
+
+export { ShieldedCoinInfo, QualifiedShieldedCoinInfo, ShieldedSendResult };
+
+export circuit receiveShieldedTokens(coin: ShieldedCoinInfo): [] {
+   receiveShielded(disclose(coin));
+}
+
+export circuit sendShieldedToUser(input: QualifiedShieldedCoinInfo, publicKey: ZswapCoinPublicKey, value: Uint<128>): ShieldedSendResult {
+  return sendShielded(disclose(input), left<ZswapCoinPublicKey, ContractAddress>(disclose(publicKey)), disclose(value));
+}
+
+export circuit mintShieldedToSelf(domainSep: Bytes<32>, value: Uint<64>, nonce: Bytes<32>): ShieldedCoinInfo {
+  return mintShieldedToken(disclose(domainSep), disclose(value), disclose(nonce), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+}
+
+export circuit mintAndSendShielded(domainSep: Bytes<32>, mintValue: Uint<64>, mintNonce: Bytes<32>, publicKey: ZswapCoinPublicKey, sendValue: Uint<128>): ShieldedSendResult {
+  const coin = mintShieldedToken(disclose(domainSep), disclose(mintValue), disclose(mintNonce), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  const qualified = QualifiedShieldedCoinInfo { nonce: coin.nonce, color: coin.color, value: coin.value, mt_index: 0 as Uint<64> };
+  return sendShielded(qualified, left<ZswapCoinPublicKey, ContractAddress>(disclose(publicKey)), disclose(sendValue));
+}
