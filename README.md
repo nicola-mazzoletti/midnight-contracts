@@ -34,7 +34,7 @@ npm run build
 | Contract | Folder | What it teaches | Guide |
 |----------|--------|-----------------|-------|
 | **Counter** | [`counter-contract/`](counter-contract) | The minimal contract: public ledger state and a single transition circuit. No privacy. | [docs.md](counter-contract/docs.md) |
-| **Bulletin Board** | [`bulletin-board-contract/`](bulletin-board-contract) | Witnesses and selective disclosure: mixing private state into a public contract. | _(planned)_ |
+| **Bulletin Board** | [`bulletin-board-contract/`](bulletin-board-contract) | Witnesses and selective disclosure: mixing private state into a public contract. | [docs.md](bulletin-board-contract/docs.md) |
 | **ZSwap Minting** | [`minting-zswap-contract/`](minting-zswap-contract) | Token minting with Zswap. | _(planned)_ |
 
 Each workspace follows the same five-part pattern:
