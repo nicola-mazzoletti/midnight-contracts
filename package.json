@@ -6,7 +6,8 @@
   "workspaces": [
     "counter-contract",
     "bulletin-board-contract",
-    "minting-zswap-contract"
+    "unshielded-token-contract",
+    "shielded-token-contract"
   ],
   "scripts": {
     "compact": "turbo run compact",

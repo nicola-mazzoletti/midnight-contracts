@@ -35,7 +35,8 @@ npm run build
 |----------|--------|-----------------|-------|
 | **Counter** | [`counter-contract/`](counter-contract) | The minimal contract: public ledger state and a single transition circuit. No privacy. | [docs.md](counter-contract/docs.md) |
 | **Bulletin Board** | [`bulletin-board-contract/`](bulletin-board-contract) | Witnesses and selective disclosure: mixing private state into a public contract. | [docs.md](bulletin-board-contract/docs.md) |
-| **ZSwap Minting** | [`minting-zswap-contract/`](minting-zswap-contract) | Token minting with Zswap. | _(planned)_ |
+| **Unshielded Token** | [`unshielded-token-contract/`](unshielded-token-contract) | Public tokens: mint, send, and receive an unshielded token plus native NIGHT. Ported verbatim from the official docs example. | [docs.md](unshielded-token-contract/docs.md) |
+| **Shielded Token** | [`shielded-token-contract/`](shielded-token-contract) | Privacy-preserving Zswap coins: mint, send, and receive shielded tokens (hidden value/owner). Ported verbatim from the official docs example. | [docs.md](shielded-token-contract/docs.md) |
 
 Each workspace follows the same five-part pattern:
 

@@ -17,7 +17,8 @@ It is a Turbo monorepo of independent contract workspaces. Current contracts:
 
 - `counter-contract`: minimal public state, no privacy (start here).
 - `bulletin-board-contract`: witnesses and selective disclosure.
-- `minting-zswap-contract`: token minting (pending a currency-model cleanup; treat as out of date).
+- `unshielded-token-contract`: unshielded token circuits (mint/send/receive + native NIGHT), ported verbatim from the official docs token-transfers example.
+- `shielded-token-contract`: shielded Zswap coins (mint/send/receive), ported verbatim from the same official token-transfers example.
 
 License: Apache-2.0.
 

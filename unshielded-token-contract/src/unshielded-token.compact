@@ -1,0 +1,62 @@
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// Unshielded token circuits, ported VERBATIM from Midnight's official
+// token-transfers contract:
+//   repo: midnightntwrk/midnight-wallet-dapp
+//         src/contract/contracts/token-transfers.compact
+//   docs: https://docs.midnight.network/examples/contracts/token-transfers
+//
+// The upstream file has nine circuits (these five unshielded + four shielded).
+// Only the UNSHIELDED circuits are reproduced here (the shielded ones live in
+// ../shielded-token-contract). The circuit bodies below are unchanged. The only
+// addition is the `pragma` above (a version pin; the upstream omits it and
+// compiles either way), kept for consistency with the rest of the repo.
+
+/**
+ * Mint using mintUnshieldedToken() + receiveUnshielded()
+ */
+export circuit mintAndReceive(amount: Uint<64>): Bytes<32> {
+    const domain = pad(32, "simple:receive");
+
+    const color = mintUnshieldedToken(
+        disclose(domain),
+        disclose(amount),
+        left<ContractAddress, UserAddress>(kernel.self())
+    );
+
+    return color;
+}
+
+/**
+ * Send to user address
+ */
+export circuit sendToUser(amount: Uint<64>, user_addr: UserAddress): [] {
+    const domain = pad(32, "simple:receive");
+    const color = tokenType(disclose(domain), kernel.self());
+
+    sendUnshielded(
+        color,
+        disclose(amount) as Uint<128>,
+        right<ContractAddress, UserAddress>(disclose(user_addr))
+    );
+}
+
+export circuit receiveTokens(amount: Uint<128>): [] {
+    const domain = pad(32, "simple:receive");
+    const color = tokenType(domain, kernel.self());
+    receiveUnshielded(color, disclose(amount));
+}
+
+export circuit receiveNightTokens(amount: Uint<128>): [] {
+   receiveUnshielded(default<Bytes<32>>, disclose(amount));
+}
+
+export circuit sendNightTokensToUser(amount: Uint<64>, user_addr: UserAddress): [] {
+    sendUnshielded(
+        default<Bytes<32>>,
+        disclose(amount) as Uint<128>,
+        right<ContractAddress, UserAddress>(disclose(user_addr))
+    );
+}
