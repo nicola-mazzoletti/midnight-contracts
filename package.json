@@ -4,10 +4,9 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "counter-cli",
     "counter-contract",
-    "minting-zswap-contract",
-    "bucket-defi-contract"    
+    "bulletin-board-contract",
+    "minting-zswap-contract"
   ],
   "scripts": {
     "compact": "turbo run compact",
