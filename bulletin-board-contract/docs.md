@@ -72,7 +72,7 @@ No node, wallet, or proof server is needed. The suite runs in memory (see
 `src/bulletin-board.compact`:
 
 ```compact
-pragma language_version >= 0.19;
+pragma language_version >= 0.23;
 
 import CompactStandardLibrary;
 
