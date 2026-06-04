@@ -54,8 +54,7 @@ the simulators run circuits in-memory using `@midnight-ntwrk/compact-runtime`.
 
 - **Compiler toolchain is `+0.31.0`.** That is the version pinned in each
   workspace's `compact` script. Do not assume older versions; verify with
-  `compact` against the available list. (Language pragmas in-tree are currently
-  `>= 0.19` and `>= 0.23`; the `0.31.0` compiler accepts both.)
+  `compact` against the available list. (Language pragmas in-tree are `>= 0.23`.)
 - **Never commit `src/managed/`.** It is generated build output, gitignored via
   `**/managed/`. Readers regenerate it with `npm run compact`. Committing it
   invites staleness and toolchain mismatch.
