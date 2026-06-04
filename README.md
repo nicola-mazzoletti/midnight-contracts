@@ -1,5 +1,7 @@
 # Midnight Contracts
 
+This project is built on the Midnight Network.
+
 A lightweight, contract-focused catalog of [Compact](https://docs.midnight.network)
 smart contracts for [Midnight](https://midnight.network), Cardano's
 privacy-preserving sidechain. Each contract is a standalone workspace with its
