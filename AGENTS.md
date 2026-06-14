@@ -19,6 +19,7 @@ It is a Turbo monorepo of independent contract workspaces. Current contracts:
 - `bulletin-board-contract`: witnesses and selective disclosure.
 - `unshielded-token-contract`: unshielded token circuits (mint/send/receive + native NIGHT), ported verbatim from the official docs token-transfers example.
 - `shielded-token-contract`: shielded Zswap coins (mint/send/receive), ported verbatim from the same official token-transfers example.
+- `voting-contract`: a yes/no/abstain ballot using nullifiers (one anonymous vote per voter), a phase state machine, and a block-time deadline.
 
 License: Apache-2.0.
 
