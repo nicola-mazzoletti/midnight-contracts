@@ -1,0 +1,73 @@
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+export enum ProposalState { SETUP, OPEN, CLOSED }
+export enum VoteChoice { YES, NO, ABSTAIN }
+
+export ledger phase: ProposalState;
+export ledger title: Opaque<"string">;
+export ledger description: Opaque<"string">;
+export ledger yesVotes: Counter;
+export ledger noVotes: Counter;
+export ledger abstainVotes: Counter;
+export ledger usedNullifiers: Set<Bytes<32>>;
+
+// The vote ending time is stored on the ledger to ensure that it is consistent across all voters and cannot be manipulated by the owner after deployment. It is set in the constructor and can only be used to enforce the voting period in the closeVoting() circuit.
+export sealed ledger voteEndingTime: Uint<64>;
+
+// The owner commitment is stored on the ledger to allow the contract to verify that only the owner can open and close voting. It is computed from the owner's secret key and a domain separator, and is set in the constructor. By using a commitment scheme, we avoid storing any sensitive information (like the secret key) on the ledger while still enabling ownership verification.
+export sealed ledger ownerCommitment: Bytes<32>;
+
+witness local_secret_key(): Bytes<32>;
+
+circuit ownerCommitmentOf(_sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "vote:owner:"), _sk]);
+}
+
+circuit voteNullifier(_sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "vote:nullifier:"), _sk]);
+}
+
+constructor(customTitle: Opaque<"string">, customDescription: Opaque<"string">, customVoteEndingTime: Uint<64>) {
+  ownerCommitment = disclose(ownerCommitmentOf(local_secret_key()));
+  title = disclose(customTitle);
+  description = disclose(customDescription);
+  phase = ProposalState.SETUP;
+  voteEndingTime = disclose(customVoteEndingTime);
+}
+
+export circuit openVoting(): [] {
+  assert(ownerCommitment == ownerCommitmentOf(local_secret_key()), "Only the owner can open voting");
+  assert(phase == ProposalState.SETUP, "Voting can only be opened from the setup phase");
+
+  phase = ProposalState.OPEN;
+}
+
+export circuit closeVoting(): [] {
+  assert(ownerCommitment == ownerCommitmentOf(local_secret_key()), "Only the owner can close voting");
+  assert(phase == ProposalState.OPEN, "Voting can only be closed from the open phase");
+  assert(blockTimeGt(voteEndingTime), "Voting cannot be closed before the ending time");
+
+  phase = ProposalState.CLOSED;
+}
+
+export circuit castVote(choice: VoteChoice): [] {
+  assert(phase == ProposalState.OPEN, "Voting is not open");
+  assert(!blockTimeGt(voteEndingTime), "Voting period has ended");
+  
+  const _sk = local_secret_key();
+  const nul = voteNullifier(_sk);
+  assert(!usedNullifiers.member(disclose(nul)), "This voter has already voted");
+
+  usedNullifiers.insert(disclose(nul));
+
+  const selected = disclose(choice);
+  if (selected == VoteChoice.YES) {
+    yesVotes.increment(1);
+  } else if (selected == VoteChoice.NO) {
+    noVotes.increment(1);
+  } else if (selected == VoteChoice.ABSTAIN) {
+    abstainVotes.increment(1);
+  }
+}
