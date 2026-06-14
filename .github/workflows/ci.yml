@@ -42,6 +42,11 @@ jobs:
             https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
           echo "$HOME/.compact/bin" >> "$GITHUB_PATH"
 
+      # The `+0.31.0` selector in the workspace scripts only *selects* a version;
+      # it does not download it. Install the pinned compiler explicitly.
+      - name: Install pinned compiler (0.31.0)
+        run: compact update 0.31.0
+
       - name: Compile contracts
         run: npm run compact
 
