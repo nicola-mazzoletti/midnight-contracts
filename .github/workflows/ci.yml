@@ -1,0 +1,49 @@
+name: CI
+
+# Runs on pull requests: verifies every contract compiles and all tests pass.
+on:
+  pull_request:
+  # Also run on direct pushes to the main branch so the base stays green.
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Compile contracts & run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Compact developer tools (the version manager). Pinned toolchain 0.31.0 is
+      # installed on demand by the workspaces' `compact compile +0.31.0` scripts.
+      - name: Cache Compact toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.compact
+          key: compact-${{ runner.os }}-0.31.0
+
+      - name: Install Compact toolchain
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf \
+            https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          echo "$HOME/.compact/bin" >> "$GITHUB_PATH"
+
+      - name: Compile contracts
+        run: npm run compact
+
+      - name: Run tests
+        run: npx turbo run test
