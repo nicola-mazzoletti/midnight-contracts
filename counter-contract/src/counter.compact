@@ -6,6 +6,7 @@ import CompactStandardLibrary;
 export ledger round: Counter;
 
 // transition function changing public state
+// (CI demo: trivial comment to trigger the workflow on a real contract)
 export circuit increment(): [] {
   round.increment(1);
 }
