@@ -42,6 +42,9 @@ jobs:
             https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
           echo "$HOME/.compact/bin" >> "$GITHUB_PATH"
 
+      - name: Install pinned compiler (0.31.0)
+        run: compact update 0.31.0
+
       - name: Compile contracts
         run: npm run compact
 
