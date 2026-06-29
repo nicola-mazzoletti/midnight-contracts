@@ -7,7 +7,8 @@
     "counter-contract",
     "bulletin-board-contract",
     "unshielded-token-contract",
-    "shielded-token-contract"
+    "shielded-token-contract",
+    "voting-contract"
   ],
   "scripts": {
     "compact": "turbo run compact",

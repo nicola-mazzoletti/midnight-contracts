@@ -39,6 +39,7 @@ npm run build
 | **Bulletin Board** | [`bulletin-board-contract/`](bulletin-board-contract) | Witnesses and selective disclosure: mixing private state into a public contract. | [docs.md](bulletin-board-contract/docs.md) |
 | **Unshielded Token** | [`unshielded-token-contract/`](unshielded-token-contract) | Public tokens: mint, send, and receive an unshielded token plus native NIGHT. Ported verbatim from the official docs example. | [docs.md](unshielded-token-contract/docs.md) |
 | **Shielded Token** | [`shielded-token-contract/`](shielded-token-contract) | Privacy-preserving Zswap coins: mint, send, and receive shielded tokens (hidden value/owner). Ported verbatim from the official docs example. | [docs.md](shielded-token-contract/docs.md) |
+| **Voting** | [`voting-contract/`](voting-contract) | Owner-controlled proposal phases with anonymous one-vote-per-secret participation enforced by nullifiers and a voting deadline. | [docs.md](voting-contract/docs.md) |
 
 Each workspace follows the same five-part pattern:
 
